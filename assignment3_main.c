@@ -52,7 +52,9 @@
 #include <xc.h>
 #include <p24F16KA101.h>
 #include "clkChange.h"
-#include "UART2.h"
+#include "IOs.h"
+#include "Timer_delay.h"
+
 
 
 uint16_t PB3_event;
@@ -62,85 +64,17 @@ uint16_t PB3_event;
  */
 
 int main(void) {
-    
-    /** This is usually where you would add run-once code
-     * e.g., peripheral initialization. For the first labs
-     * you might be fine just having it here. For more complex
-     * projects, you might consider having one or more initialize() functions
-     */
-    
-    AD1PCFG = 0xFFFF; /* keep this line as it sets I/O pins that can also be analog to be digital */
-    
     newClk(500);
-    
-    //T3CON config
-    T2CONbits.T32 = 0; // operate timer 2 as 16 bit timer
-    T3CONbits.TCKPS = 1; // set prescaler to 1:8
-    T3CONbits.TCS = 0; // use internal clock
-    T3CONbits.TSIDL = 0; //operate in idle mode
-    IPC2bits.T3IP = 2; //7 is highest and 1 is lowest pri.
-    IFS0bits.T3IF = 0;
-    IEC0bits.T3IE = 1; //enable timer interrupt
-    PR3 = 15625; // set the count value for 0.5 s (or 500 ms)
-    TMR3 = 0;
-    T3CONbits.TON = 1;
-
-    /* Let's set up some I/O */
-    TRISBbits.TRISB9 = 0;
-    LATBbits.LATB9 = 1;
-    
-    TRISAbits.TRISA4 = 1;
-    CNPU1bits.CN0PUE = 1;
-    CNEN1bits.CN0IE = 1;
-    
-    TRISBbits.TRISB4 = 1;
-    CNPU1bits.CN1PUE = 1;
-    CNEN1bits.CN1IE = 1;
-    
-    TRISBbits.TRISB7 = 1;
-    CNPU2bits.CN23PUE = 1;
-    CNEN2bits.CN23IE = 1;
-    
-    /* Let's clear some flags */
-    PB3_event = 0;
-    
-    IPC4bits.CNIP = 6;
-    IFS1bits.CNIF = 0;
-    IEC1bits.CNIE = 1;
-    
-    /* Let's set up our UART */    
-    InitUART2();
-  
+    IOinit();
+    TimerInit();
     
     while(1) {
         
-        Idle();
+        IOCheck();
         
-        if (PB3_event) {
-            Disp2String("PB3 event\n\r");
-            PB3_event = 0;
-        }
     }
     
     return 0;
 }
 
 
-// Timer 2 interrupt subroutine
-void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void){
-    //Don't forget to clear the timer 2 interrupt flag!
-    IFS0bits.T2IF = 0;
-}
-
-void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void){
-    //Don't forget to clear the timer 2 interrupt flag!
-    IFS0bits.T3IF = 0;
-    _LATB9 ^= 1;
-}
-
-void __attribute__((interrupt, no_auto_psv)) _CNInterrupt(void){
-    //Don't forget to clear the CN interrupt flag!
-    IFS1bits.CNIF = 0;
-
-    PB3_event = 1;
-}
