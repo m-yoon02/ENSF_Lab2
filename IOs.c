@@ -35,10 +35,30 @@ void IOinit(void) {
 
 void IOCheck(void) {
     //add button implementation and usage
+   
+    
     if (PB1) {
         LED1 =1; //LED1 on
-        delay_s(0.5);
+        delay_s(0.25);
         LED1 =0; //LED1 off
-        delay_s(0.5);
+        delay_s(0.25);
+    }
+    if (PB2) {
+        LED1 =1;
+        delay_s(1);
+        LED1 =0;
+        delay_s(1);
+    }
+    if (PB3) {
+        LED1 =1;
+        delay_s(6);
+        LED1 =0;
+        delay_s(6);
+    }
+    if (PB1 && PB2) {
+        LED1 =1;
+        delay_s(0.001);
+        LED1 =0;
+        delay_s(0.001);
     }
 }
